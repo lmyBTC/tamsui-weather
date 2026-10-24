@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>淡水潮汐氣象 • Tamsui Tide & Weather</title>
+  <meta name="description" content="專為淡水河口、老街、漁人碼頭設計的極簡即時潮汐與氣象看板。秒開、單頁一覽、離線可用。">
+  <meta name="theme-color" content="#031926">
+  
+  <!-- PWA & iOS Web App 支援 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="淡水潮汐">
+  
+  <!-- Google Fonts: Inter & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  
+  <script>
+    // 強制清理舊版過期 Service Worker 與 Cache Storage，確保永遠載入最新修復代碼
+    if (typeof caches !== 'undefined') {
+      caches.keys().then((keys) => {
+        for (const k of keys) {
+          if (k !== 'tamsui-tide-pwa-v4') caches.delete(k);
+        }
+      });
+    }
+  </script>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+          },
+          colors: {
+            ocean: {
+              950: '#070d1e',
+              900: '#0b132b',
+              850: '#111c3d',
+              800: '#1c2541',
+              700: '#3a506b',
+              400: '#48cae4',
+              300: '#90e0ef',
+              100: '#caf0f8',
+            },
+            accent: {
+              cyan: '#00f5d4',
+              blue: '#00bbf9',
+              amber: '#ffb703',
+              rose: '#f72585'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* iOS 安全區域適配與捲軸美化 */
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      background-color: #070d1e;
+      color: #e2e8f0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    
+    /* 微光玻璃效果 */
+    .glass-card {
+      background: rgba(17, 28, 61, 0.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(72, 202, 228, 0.12);
+    }
+
+    .glass-card-hover {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(72, 202, 228, 0.28);
+      transform: translateY(-1px);
+    }
+
+    /* 旋轉動畫 */
+    @keyframes spin-once {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-custom {
+      animation: spin-once 0.75s ease-in-out;
+    }
+
+    /* 呼吸脈衝波紋 */
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .pulse-ring {
+      animation: pulse-ring 2.5s infinite ease-in-out;
+    }
+
+    /* 隱藏滾動條但保持滾動 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start antialiased selection:bg-ocean-400 selection:text-ocean-950">
+
+  <!-- Toast 懸浮提示通知 -->
+  <div id="toast" class="fixed top-4 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4 max-w-sm w-11/12">
+    <div id="toastInner" class="flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border text-sm font-medium glass-card">
+      <span id="toastIcon" class="text-base">ℹ️</span>
+      <span id="toastMsg" class="flex-1 text-slate-200"></span>
+    </div>
+  </div>
+
+  <!-- 離線快取提示條 (非侵入式) -->
+  <div id="offlineBanner" class="w-full bg-amber-500/15 border-b border-amber-500/30 text-amber-300 px-4 py-2 text-xs text-center font-medium hidden">
+    ⚠️ 網路離線或未填金鑰，目前顯示本地快取／展示資料
+  </div>
+
+  <!-- 主容器 (限制最大寬度以保證手機至桌面體驗一致) -->
+  <main class="w-full max-w-md mx-auto px-4 py-4 flex flex-col gap-4 flex-1 pb-10">
+
+    <!-- 頂部 Header 狀態欄 -->
+    <header class="flex items-center justify-between pt-1 pb-2">
+      <div class="flex items-center gap-2.5">
+        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+          <span class="text-lg">🌊</span>
+          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-ocean-950 pulse-ring"></span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-1">
+              淡水潮汐氣象
+            </h1>
+            <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-ocean-800 text-ocean-300 border border-ocean-700">TAMSUI</span>
+          </div>
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+            <span id="stationDesc">淡水老街・漁人碼頭・河口</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- 右上功能按鈕群 -->
+      <div class="flex items-center gap-1.5">
+        <!-- 手動更新按鈕 -->
+        <button id="btnRefresh" title="手動重新整理資料" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-400 active:scale-95 transition">
+          <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
+        <!-- 設定按鈕 -->
+        <button id="btnSettings" title="設定 API 金鑰" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-400 active:scale-95 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- 卡片 1：英雄級即時潮況與氣象看版 (Hero Tide & Weather Card) -->
+    <section class="glass-card glass-card-hover rounded-3xl p-5 relative overflow-hidden shadow-2xl border border-cyan-500/25 bg-gradient-to-br from-ocean-850/95 to-ocean-900/95">
+      <!-- 背景光暈裝飾 -->
+      <div class="absolute -top-12 -right-12 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <!-- 頂部資訊列：即時時鐘 & 農曆潮差徽章 -->
+      <div class="flex items-center justify-between mb-3 relative z-10">
+        <!-- 即時時間（長輩一眼辨識） -->
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ocean-950/70 border border-white/10 shadow-inner">
+          <span class="text-sm">🕒</span>
+          <span class="text-xs text-slate-300 font-medium">現在時間</span>
+          <span id="currentClock" class="text-sm font-bold font-mono text-cyan-300 tracking-wider">--:--:--</span>
+        </div>
+        <!-- 潮差農曆標籤 -->
+        <div class="text-right">
+          <span id="tideRangeBadge" class="text-xs font-semibold text-ocean-200 bg-ocean-800/90 px-3 py-1 rounded-xl border border-ocean-600/60 shadow-sm">
+            中潮 • 農曆初九
+          </span>
+        </div>
+      </div>
+
+      <!-- 核心狀態大字展示：漲潮中 / 退潮中 (長輩友善超大辨識區) -->
+      <div class="my-3 relative z-10">
+        <div id="tideStatusBadge" class="flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-lg">
+          <div class="flex items-center gap-2.5">
+            <span id="tideArrow" class="text-2xl font-black">▲</span>
+            <span id="tideStateText" class="text-2xl sm:text-3xl font-black tracking-wide drop-shadow">漲潮中</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs opacity-75">潮位變化</span>
+            <span id="tideProgressText" class="text-sm font-extrabold px-2.5 py-0.5 rounded-lg bg-black/25 font-mono">65%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下個滿/乾潮倒數核心數值 -->
+      <div class="my-3 relative z-10 bg-ocean-950/50 rounded-2xl p-3.5 border border-white/5">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-xs font-medium text-slate-300">
+            距離下次 <span id="nextTideType" class="text-cyan-300 font-black text-sm">滿潮</span> 還剩
+          </p>
+          <div class="text-right text-xs">
+            <span class="text-slate-200 font-bold" id="nextTideTime">預計 --:--</span>
+            <span class="text-[11px] text-slate-400 ml-1.5" id="nextTideHeight">-- cm</span>
+          </div>
+        </div>
+        <div class="flex items-baseline justify-between mt-1">
+          <h2 id="nextTideCountdown" class="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono drop-shadow">
+            --:--:--
+          </h2>
+        </div>
+      </div>
+
+      <!-- 整合淡水即時氣象資訊 (長輩釣客一卡全覽) -->
+      <div class="pt-3 mt-3 border-t border-slate-700/60 relative z-10">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm">⛅</span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">淡水即時氣象</h3>
+          </div>
+          <span id="weatherTextBadge" class="text-xs font-bold text-cyan-300 bg-cyan-950/70 border border-cyan-700/50 px-2.5 py-0.5 rounded-full">
+            載入中
+          </span>
+        </div>
+
+        <!-- 氣象重點三格 -->
+        <div class="grid grid-cols-3 gap-2">
+          <!-- 氣溫 -->
+          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
+            <span class="text-[10px] text-slate-400 block mb-0.5">即時氣溫</span>
+            <div class="flex items-baseline justify-center">
+              <span id="wxTemp" class="text-xl font-black text-amber-300 font-mono">--</span>
+              <span class="text-[11px] text-amber-200 ml-0.5">°C</span>
+            </div>
+            <span class="text-[10px] text-slate-400 block mt-0.5">體感 <span id="wxApparentTemp">--</span>°</span>
+          </div>
+
+          <!-- 降雨機率 -->
+          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
+            <span class="text-[10px] text-slate-400 block mb-0.5">降雨機率</span>
+            <div class="flex items-baseline justify-center">
+              <span id="wxPop" class="text-xl font-black text-cyan-300 font-mono">--</span>
+              <span class="text-[11px] text-cyan-200 ml-0.5">%</span>
+            </div>
+            <span class="text-[10px] text-slate-400 block mt-0.5">濕度 <span id="wxHumidity">--</span>%</span>
+          </div>
+
+          <!-- 風向風速 -->
+          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
+            <span class="text-[10px] text-slate-400 block mb-0.5">風向 / 風級</span>
+            <div class="flex items-baseline justify-center">
+              <span id="wxWindScale" class="text-xl font-black text-teal-300 font-mono">--</span>
+              <span class="text-[11px] text-teal-200 ml-0.5">級</span>
+            </div>
+            <span class="text-[10px] text-slate-400 block mt-0.5 truncate max-w-full" id="wxWindDir">--</span>
+          </div>
+        </div>
+
+        <!-- 天氣詳細提醒小語 -->
+        <p id="wxDescription" class="text-xs text-slate-300 mt-2.5 pt-2 border-t border-slate-800/80 leading-relaxed">
+          正在載入淡水氣象預報...
+        </p>
+      </div>
+    </section>
+
+    <!-- 卡片 2：今日高低潮時序表格 (Today Tide Timeline) - 純大字無 icon 極簡清晰 -->
+    <section class="glass-card glass-card-hover rounded-3xl p-4 shadow-xl border border-ocean-800">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">🕒</span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">今日高低潮時序 (海圖基準)</h3>
+        </div>
+        <span id="tideDateText" class="text-xs font-medium text-slate-400">今日</span>
+      </div>
+
+      <!-- 時序列表網格 (加大純字標籤，無 icon) -->
+      <div id="tideScheduleGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <!-- 骨架載入中 -->
+        <div class="bg-ocean-950/60 rounded-2xl p-3 text-center border border-white/5 animate-pulse">
+          <div class="h-4 bg-slate-700/50 rounded w-14 mx-auto mb-2"></div>
+          <div class="h-6 bg-slate-700/60 rounded w-20 mx-auto mb-1"></div>
+          <div class="h-4 bg-slate-700/40 rounded w-12 mx-auto"></div>
+        </div>
+        <div class="bg-ocean-950/60 rounded-2xl p-3 text-center border border-white/5 animate-pulse">
+          <div class="h-4 bg-slate-700/50 rounded w-14 mx-auto mb-2"></div>
+          <div class="h-6 bg-slate-700/60 rounded w-20 mx-auto mb-1"></div>
+          <div class="h-4 bg-slate-700/40 rounded w-12 mx-auto"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 卡片 3：24 小時連續平滑潮位波形 (Canvas Wave) 與潮高極值整合 (移至底部) -->
+    <section class="glass-card glass-card-hover rounded-3xl p-4 shadow-xl border border-ocean-800">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-base">📈</span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">24 小時潮位變化與趨勢</h3>
+        </div>
+        <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block shadow-sm shadow-cyan-400"></span> 現在時間
+        </span>
+      </div>
+
+      <!-- Canvas 容器 (自適應寬度與固定高度) -->
+      <div class="relative w-full h-36 bg-ocean-950/70 rounded-2xl overflow-hidden border border-slate-800/80 shadow-inner">
+        <canvas id="tideCanvas" class="w-full h-full block"></canvas>
+      </div>
+      <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 px-1 pt-1.5">
+        <span>00:00</span>
+        <span>06:00</span>
+        <span>12:00</span>
+        <span>18:00</span>
+        <span>24:00</span>
+      </div>
+
+      <!-- 整合：當前推估潮位 & 今日潮位極值 (與波形曲線完美對照) -->
+      <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t border-slate-700/50">
+        <div class="bg-ocean-950/60 rounded-2xl p-3 border border-white/5">
+          <span class="text-xs text-slate-400 block mb-1">當前推估潮位</span>
+          <div class="flex items-baseline gap-1.5">
+            <span id="currentTideHeight" class="text-2xl font-black text-cyan-300 font-mono">--</span>
+            <span class="text-xs text-slate-400 font-medium">cm (基準)</span>
+          </div>
+        </div>
+        <div class="bg-ocean-950/60 rounded-2xl p-3 border border-white/5">
+          <span class="text-xs text-slate-400 block mb-1">今日潮位極值</span>
+          <div class="flex items-center justify-between text-sm font-mono mt-0.5">
+            <span class="text-rose-300 font-semibold">滿 <strong id="todayMaxHeight" class="text-base font-black">--</strong></span>
+            <span class="text-cyan-300 font-semibold">乾 <strong id="todayMinHeight" class="text-base font-black">--</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 頁尾資訊 -->
+    <footer class="mt-2 text-center text-[11px] text-slate-400 flex flex-col items-center gap-1">
+      <div class="flex items-center gap-2">
+        <span>資料來源：交通部中央氣象署 (CWA)</span>
+        <span>•</span>
+        <span id="lastUpdateTime">更新於 --:--:--</span>
+      </div>
+      <div class="flex items-center gap-2 text-slate-400">
+        <span>極簡免伺服器 SPA</span>
+        <span>•</span>
+        <span>支援離線快取</span>
+      </div>
+    </footer>
+
+  </main>
+
+  <!-- 設定彈窗 Modal (API Key 配置) -->
+  <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-200">
+    <div class="bg-ocean-900 border border-ocean-700/80 rounded-3xl p-6 w-full max-w-md shadow-2xl relative transform scale-95 transition-all duration-200">
+      
+      <!-- 關閉按鈕 -->
+      <button id="btnCloseSettings" class="absolute top-5 right-5 text-slate-400 hover:text-white p-1 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="text-2xl">⚙️</span>
+        <div>
+          <h3 class="text-lg font-bold text-white">設定 API 授權金鑰</h3>
+          <p class="text-xs text-slate-400">連接中央氣象署開放資料平台</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label for="inputApiKey" class="block font-semibold text-slate-300 mb-1.5">
+            CWA API 授權碼 (32碼)
+          </label>
+          <input 
+            type="text" 
+            id="inputApiKey" 
+            placeholder="例如：CWA-XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" 
+            class="w-full bg-ocean-950 border border-ocean-700 focus:border-cyan-400 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-200 focus:outline-none transition shadow-inner placeholder:text-slate-600"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <p class="text-[11px] text-slate-400 mt-1.5 leading-relaxed">
+            金鑰僅保存在本機瀏覽器 LocalStorage，絕不上傳第三方伺服器。若未填寫將載入內建展示資料。
+          </p>
+        </div>
+
+        <div class="bg-ocean-950/60 rounded-xl p-3 border border-ocean-800 text-slate-400 space-y-1">
+          <p class="font-medium text-slate-300 flex items-center gap-1">
+            <span>💡</span> 如何免費取得氣象署 API 金鑰？
+          </p>
+          <ol class="list-decimal list-inside space-y-0.5 text-[11px] text-slate-400">
+            <li>前往 <a href="https://opendata.cwa.gov.tw/" target="_blank" rel="noopener" class="text-cyan-400 underline hover:text-cyan-300">氣象資料開放平台</a> 免費註冊會員</li>
+            <li>登入後至「會員中心」取得個人 32 碼授權碼</li>
+            <li>貼回此處並點擊儲存即可秒開即時資料</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- 操作按鈕列 -->
+      <div class="flex items-center justify-end gap-2.5 mt-6 pt-3 border-t border-ocean-800">
+        <button id="btnClearKey" class="px-4 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 transition">
+          清除金鑰
+        </button>
+        <button id="btnSaveKey" class="px-5 py-2 rounded-xl text-xs font-semibold text-ocean-950 bg-cyan-400 hover:bg-cyan-300 active:scale-95 transition shadow-lg shadow-cyan-400/20">
+          儲存並更新
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 引入主程式腳本 -->
+  <script type="module" src="app.js?v=20261024_ui_v4"></script>
+</body>
+</html>

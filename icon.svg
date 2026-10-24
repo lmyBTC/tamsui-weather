@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#031926"/>
+      <stop offset="50%" stop-color="#0b253a"/>
+      <stop offset="100%" stop-color="#02121e"/>
+    </linearGradient>
+    <linearGradient id="waveGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="waveGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#0369a1" stop-opacity="0.3"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fde047" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#ca8a04" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- 背景圓角矩形 (Squircle) -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+  
+  <!-- 裝飾微光圈 -->
+  <circle cx="256" cy="190" r="140" fill="url(#sunGlow)"/>
+  <circle cx="256" cy="190" r="48" fill="#fef08a" opacity="0.85" filter="url(#glow)"/>
+
+  <!-- 背景次波形 -->
+  <path d="M 40 330 C 130 290, 200 370, 290 320 C 370 270, 430 330, 472 310 L 472 450 C 472 460, 460 472, 450 472 L 62 472 C 50 472, 40 460, 40 450 Z" fill="url(#waveGrad2)"/>
+
+  <!-- 前景主波形 (淡水潮汐正弦波) -->
+  <path d="M 40 370 C 120 320, 190 410, 280 350 C 360 290, 420 360, 472 340 L 472 450 C 472 462, 462 472, 450 472 L 62 472 C 50 472, 40 462, 40 450 Z" fill="url(#waveGrad1)" filter="url(#glow)"/>
+
+  <!-- 潮位關鍵點指示標記 -->
+  <circle cx="280" cy="350" r="9" fill="#ffffff"/>
+  <circle cx="280" cy="350" r="16" fill="none" stroke="#22d3ee" stroke-width="3" opacity="0.75"/>
+</svg>

@@ -1,0 +1,35 @@
+{
+  "name": "淡水潮汐氣象 - 極簡潮況看板",
+  "short_name": "淡水潮汐",
+  "description": "專為淡水河口、老街、漁人碼頭打造之極簡潮汐氣象 PWA，提供即時滿乾潮倒數、24H 平滑潮位正弦波形與離線快取。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#031926",
+  "theme_color": "#031926",
+  "orientation": "portrait-primary",
+  "lang": "zh-TW",
+  "categories": [
+    "weather",
+    "sports",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
