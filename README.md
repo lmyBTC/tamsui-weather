@@ -9,6 +9,7 @@
 ## 🌟 核心特色
 
 - 🎯 **淡水專屬純粹體驗**：移除一切多餘選項與繁複選單，專心呈現淡水單一水域之極致看板。
+- 🌐 **線上正式版 (GitHub Pages)**：[https://lmybtc.github.io/tamsui-weather/](https://lmybtc.github.io/tamsui-weather/) (手機直接開啟即可安裝為 App)
 - ⚡ **純前端零伺服器架構**：100% 靜態網頁（Vanilla HTML5 + Tailwind CSS + 原生 ES6+），無後端負擔，相容 GitHub Pages 與 Cloudflare Pages 免費託管。
 - 📊 **HTML5 Canvas 24H 潮位正弦曲線**：自適應 Retina 高解析度螢幕，動態計算餘弦補間平滑曲線，標註高低潮極值點與即時時間呼吸燈光點。
 - ⏱️ **秒級即時倒數與狀態監控**：即時計算當前「▲ 漲潮中」或「▼ 退潮中」，精確計算距離下次乾滿潮之剩餘時間。
