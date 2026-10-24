@@ -25,7 +25,7 @@
     if (typeof caches !== 'undefined') {
       caches.keys().then((keys) => {
         for (const k of keys) {
-          if (k !== 'tamsui-tide-pwa-v4') caches.delete(k);
+          if (k !== 'tamsui-tide-pwa-v8') caches.delete(k);
         }
       });
     }
@@ -133,43 +133,43 @@
   </div>
 
   <!-- 離線快取提示條 (非侵入式) -->
-  <div id="offlineBanner" class="w-full bg-amber-500/15 border-b border-amber-500/30 text-amber-300 px-4 py-2 text-xs text-center font-medium hidden">
+  <div id="offlineBanner" class="w-full bg-amber-500/15 border-b border-amber-500/30 text-amber-300 px-4 py-2.5 text-[20px] text-center font-bold hidden">
     ⚠️ 網路離線或未填金鑰，目前顯示本地快取／展示資料
   </div>
 
-  <!-- 主容器 (限制最大寬度以保證手機至桌面體驗一致) -->
-  <main class="w-full max-w-md mx-auto px-4 py-4 flex flex-col gap-4 flex-1 pb-10">
+  <!-- 主容器 (擴展寬度以容納 20px+ 大字體排版) -->
+  <main class="w-full max-w-xl mx-auto px-4 py-5 flex flex-col gap-5 flex-1 pb-12">
 
-    <!-- 頂部 Header 狀態欄 -->
-    <header class="flex items-center justify-between pt-1 pb-2">
-      <div class="flex items-center gap-2.5">
-        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+    <!-- 頂部 Header 狀態欄 (縮小整理、單行防折行精緻排列) -->
+    <header class="flex items-center justify-between pt-1 pb-1">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="relative w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0">
           <span class="text-lg">🌊</span>
-          <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-ocean-950 pulse-ring"></span>
+          <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-ocean-950 pulse-ring"></span>
         </div>
-        <div>
-          <div class="flex items-center gap-1.5">
-            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-1">
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 flex-nowrap">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white whitespace-nowrap">
               淡水潮汐氣象
             </h1>
-            <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-ocean-800 text-ocean-300 border border-ocean-700">TAMSUI</span>
+            <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded bg-ocean-800 text-ocean-300 border border-ocean-700 shrink-0">TAMSUI</span>
           </div>
-          <p class="text-[11px] text-slate-400 flex items-center gap-1.5">
+          <p class="text-xs text-slate-400 truncate whitespace-nowrap mt-0.5">
             <span id="stationDesc">淡水老街・漁人碼頭・河口</span>
           </p>
         </div>
       </div>
 
-      <!-- 右上功能按鈕群 -->
-      <div class="flex items-center gap-1.5">
+      <!-- 右上功能按鈕群 (精緻適度大小) -->
+      <div class="flex items-center gap-1.5 shrink-0 ml-2">
         <!-- 手動更新按鈕 -->
-        <button id="btnRefresh" title="手動重新整理資料" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-400 active:scale-95 transition">
+        <button id="btnRefresh" title="手動重新整理資料" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-300 active:scale-95 transition shadow-sm">
           <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
           </svg>
         </button>
         <!-- 設定按鈕 -->
-        <button id="btnSettings" title="設定 API 金鑰" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-400 active:scale-95 transition">
+        <button id="btnSettings" title="設定 API 金鑰" class="p-2 rounded-xl glass-card text-slate-300 hover:text-cyan-300 active:scale-95 transition shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -179,51 +179,48 @@
     </header>
 
     <!-- 卡片 1：英雄級即時潮況與氣象看版 (Hero Tide & Weather Card) -->
-    <section class="glass-card glass-card-hover rounded-3xl p-5 relative overflow-hidden shadow-2xl border border-cyan-500/25 bg-gradient-to-br from-ocean-850/95 to-ocean-900/95">
+    <section class="glass-card glass-card-hover rounded-3xl p-4 sm:p-5 relative overflow-hidden shadow-2xl border border-cyan-500/30 bg-gradient-to-br from-ocean-850/95 to-ocean-900/95">
       <!-- 背景光暈裝飾 -->
       <div class="absolute -top-12 -right-12 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-blue-600/10 rounded-full blur-2xl pointer-events-none"></div>
 
-      <!-- 頂部資訊列：即時時鐘 & 農曆潮差徽章 -->
-      <div class="flex items-center justify-between mb-3 relative z-10">
-        <!-- 即時時間（長輩一眼辨識） -->
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ocean-950/70 border border-white/10 shadow-inner">
-          <span class="text-sm">🕒</span>
-          <span class="text-xs text-slate-300 font-medium">現在時間</span>
-          <span id="currentClock" class="text-sm font-bold font-mono text-cyan-300 tracking-wider">--:--:--</span>
+      <!-- 頂部資訊列：即時時鐘 & 農曆潮差徽章 (單行防折行) -->
+      <div class="flex items-center justify-between mb-3 relative z-10 flex-nowrap gap-2">
+        <!-- 即時時間 -->
+        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ocean-950/80 border border-white/10 shadow-inner shrink-0">
+          <span class="text-base">🕒</span>
+          <span class="text-xs sm:text-sm text-slate-300 font-bold">現在時間</span>
+          <span id="currentClock" class="text-sm sm:text-base font-black font-mono text-cyan-300 tracking-wider">--:--:--</span>
         </div>
         <!-- 潮差農曆標籤 -->
-        <div class="text-right">
-          <span id="tideRangeBadge" class="text-xs font-semibold text-ocean-200 bg-ocean-800/90 px-3 py-1 rounded-xl border border-ocean-600/60 shadow-sm">
+        <div class="shrink-0 text-right">
+          <span id="tideRangeBadge" class="text-xs sm:text-sm font-bold text-ocean-100 bg-ocean-800/90 px-3 py-1.5 rounded-xl border border-ocean-600/60 shadow-sm inline-block whitespace-nowrap">
             中潮 • 農曆初九
           </span>
         </div>
       </div>
 
-      <!-- 核心狀態大字展示：漲潮中 / 退潮中 (長輩友善超大辨識區) -->
+      <!-- 核心狀態大字展示：漲潮中 / 退潮中 (絕對單行防折行，不切斷文字) -->
       <div class="my-3 relative z-10">
-        <div id="tideStatusBadge" class="flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 bg-emerald-500/15 text-emerald-300 border-emerald-500/30 shadow-lg">
-          <div class="flex items-center gap-2.5">
-            <span id="tideArrow" class="text-2xl font-black">▲</span>
-            <span id="tideStateText" class="text-2xl sm:text-3xl font-black tracking-wide drop-shadow">漲潮中</span>
+        <div id="tideStatusBadge" class="flex items-center justify-between px-4 py-3 rounded-2xl border transition-all duration-300 bg-emerald-500/15 text-emerald-300 border-emerald-500/40 shadow-lg">
+          <div class="flex items-center gap-2.5 whitespace-nowrap shrink-0">
+            <span id="tideArrow" class="text-3xl font-black">▲</span>
+            <span id="tideStateText" class="text-3xl sm:text-4xl font-black tracking-wide drop-shadow whitespace-nowrap">漲潮中</span>
           </div>
-          <div class="flex items-center gap-1.5">
-            <span class="text-xs opacity-75">潮位變化</span>
-            <span id="tideProgressText" class="text-sm font-extrabold px-2.5 py-0.5 rounded-lg bg-black/25 font-mono">65%</span>
+          <div class="flex items-center gap-1.5 shrink-0 bg-black/30 px-3 py-1 rounded-xl border border-white/5">
+            <span class="text-xs sm:text-sm font-bold opacity-85 whitespace-nowrap">潮位變化</span>
+            <span id="tideProgressText" class="text-base sm:text-lg font-black font-mono text-cyan-300">65%</span>
           </div>
         </div>
       </div>
 
-      <!-- 下個滿/乾潮倒數核心數值 -->
-      <div class="my-3 relative z-10 bg-ocean-950/50 rounded-2xl p-3.5 border border-white/5">
-        <div class="flex items-center justify-between mb-1">
-          <p class="text-xs font-medium text-slate-300">
-            距離下次 <span id="nextTideType" class="text-cyan-300 font-black text-sm">滿潮</span> 還剩
+      <!-- 下個滿/乾潮倒數核心數值 (大字清晰防折行) -->
+      <div class="my-3 relative z-10 bg-ocean-950/70 rounded-2xl p-4 border border-white/10 shadow-inner">
+        <div class="flex items-center justify-between mb-1.5 flex-nowrap">
+          <p class="text-sm sm:text-base font-bold text-slate-200 whitespace-nowrap">
+            距離下次 <span id="nextTideType" class="text-cyan-300 font-black text-base sm:text-lg">滿潮</span> 還剩
           </p>
-          <div class="text-right text-xs">
-            <span class="text-slate-200 font-bold" id="nextTideTime">預計 --:--</span>
-            <span class="text-[11px] text-slate-400 ml-1.5" id="nextTideHeight">-- cm</span>
-          </div>
+       
         </div>
         <div class="flex items-baseline justify-between mt-1">
           <h2 id="nextTideCountdown" class="text-4xl sm:text-5xl font-black tracking-tight text-white font-mono drop-shadow">
@@ -232,92 +229,91 @@
         </div>
       </div>
 
-      <!-- 整合淡水即時氣象資訊 (長輩釣客一卡全覽) -->
+      <!-- 整合淡水即時氣象資訊 (改為橫向 3 欄並排，不再無限縱向堆疊) -->
       <div class="pt-3 mt-3 border-t border-slate-700/60 relative z-10">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-sm">⛅</span>
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">淡水即時氣象</h3>
+        <div class="flex items-center justify-between mb-2.5 flex-nowrap">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-lg">⛅</span>
+            <h3 class="text-base font-black uppercase tracking-wider text-white whitespace-nowrap">淡水即時氣象</h3>
           </div>
-          <span id="weatherTextBadge" class="text-xs font-bold text-cyan-300 bg-cyan-950/70 border border-cyan-700/50 px-2.5 py-0.5 rounded-full">
+          <span id="weatherTextBadge" class="text-xs sm:text-sm font-bold text-cyan-300 bg-cyan-950/80 border border-cyan-700/60 px-2.5 py-0.5 rounded-full shadow-sm whitespace-nowrap shrink-0">
             載入中
           </span>
         </div>
 
-        <!-- 氣象重點三格 -->
+        <!-- 氣象重點三格 (橫向緊湊並排，數字大，一眼全覽) -->
         <div class="grid grid-cols-3 gap-2">
           <!-- 氣溫 -->
-          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
-            <span class="text-[10px] text-slate-400 block mb-0.5">即時氣溫</span>
-            <div class="flex items-baseline justify-center">
-              <span id="wxTemp" class="text-xl font-black text-amber-300 font-mono">--</span>
-              <span class="text-[11px] text-amber-200 ml-0.5">°C</span>
+          <div class="bg-ocean-950/80 rounded-2xl p-2.5 text-center border border-white/10 shadow-inner flex flex-col justify-between">
+            <span class="text-xs font-bold text-slate-300 block whitespace-nowrap">即時氣溫</span>
+            <div class="flex items-baseline justify-center my-0.5">
+              <span id="wxTemp" class="text-2xl sm:text-3xl font-black text-amber-300 font-mono">--</span>
+              <span class="text-xs font-bold text-amber-200 ml-0.5">°C</span>
             </div>
-            <span class="text-[10px] text-slate-400 block mt-0.5">體感 <span id="wxApparentTemp">--</span>°</span>
+            <span class="text-xs font-semibold text-slate-200 block truncate">體感 <span id="wxApparentTemp">--</span>°</span>
           </div>
 
           <!-- 降雨機率 -->
-          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
-            <span class="text-[10px] text-slate-400 block mb-0.5">降雨機率</span>
-            <div class="flex items-baseline justify-center">
-              <span id="wxPop" class="text-xl font-black text-cyan-300 font-mono">--</span>
-              <span class="text-[11px] text-cyan-200 ml-0.5">%</span>
+          <div class="bg-ocean-950/80 rounded-2xl p-2.5 text-center border border-white/10 shadow-inner flex flex-col justify-between">
+            <span class="text-xs font-bold text-slate-300 block whitespace-nowrap">降雨機率</span>
+            <div class="flex items-baseline justify-center my-0.5">
+              <span id="wxPop" class="text-2xl sm:text-3xl font-black text-cyan-300 font-mono">--</span>
+              <span class="text-xs font-bold text-cyan-200 ml-0.5">%</span>
             </div>
-            <span class="text-[10px] text-slate-400 block mt-0.5">濕度 <span id="wxHumidity">--</span>%</span>
+            <span class="text-xs font-semibold text-slate-200 block truncate">濕度 <span id="wxHumidity">--</span>%</span>
           </div>
 
           <!-- 風向風速 -->
-          <div class="bg-ocean-950/70 rounded-xl p-2 text-center border border-white/5">
-            <span class="text-[10px] text-slate-400 block mb-0.5">風向 / 風級</span>
-            <div class="flex items-baseline justify-center">
-              <span id="wxWindScale" class="text-xl font-black text-teal-300 font-mono">--</span>
-              <span class="text-[11px] text-teal-200 ml-0.5">級</span>
+          <div class="bg-ocean-950/80 rounded-2xl p-2.5 text-center border border-white/10 shadow-inner flex flex-col justify-between">
+            <span class="text-xs font-bold text-slate-300 block whitespace-nowrap">風向 / 風級</span>
+            <div class="flex items-baseline justify-center my-0.5">
+              <span id="wxWindScale" class="text-2xl sm:text-3xl font-black text-teal-300 font-mono">--</span>
+              <span class="text-xs font-bold text-teal-200 ml-0.5">級</span>
             </div>
-            <span class="text-[10px] text-slate-400 block mt-0.5 truncate max-w-full" id="wxWindDir">--</span>
+            <span class="text-xs font-semibold text-slate-200 block truncate" id="wxWindDir">--</span>
           </div>
         </div>
 
-        <!-- 天氣詳細提醒小語 -->
-        <p id="wxDescription" class="text-xs text-slate-300 mt-2.5 pt-2 border-t border-slate-800/80 leading-relaxed">
+        <!-- 天氣詳細提醒小語 (大字提高行距) -->
+        <p id="wxDescription" class="text-sm font-medium text-slate-100 mt-2.5 pt-2 border-t border-slate-700/60 leading-relaxed">
           正在載入淡水氣象預報...
         </p>
       </div>
     </section>
 
-    <!-- 卡片 2：今日高低潮時序表格 (Today Tide Timeline) - 純大字無 icon 極簡清晰 -->
-    <section class="glass-card glass-card-hover rounded-3xl p-4 shadow-xl border border-ocean-800">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">🕒</span>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">今日高低潮時序 (海圖基準)</h3>
+    <!-- 卡片 2：今日高低潮時序表格 (Today Tide Timeline) - 標題單行防折行 -->
+    <section class="glass-card glass-card-hover rounded-3xl p-4 sm:p-5 shadow-xl border border-ocean-800">
+      <div class="flex items-center justify-between mb-3 flex-nowrap">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-lg">🕒</span>
+          <h3 class="text-base sm:text-lg font-black uppercase tracking-wider text-white whitespace-nowrap">今日高低潮時序</h3>
         </div>
-        <span id="tideDateText" class="text-xs font-medium text-slate-400">今日</span>
-      </div>
+   </div>
 
       <!-- 時序列表網格 (加大純字標籤，無 icon) -->
       <div id="tideScheduleGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <!-- 骨架載入中 -->
         <div class="bg-ocean-950/60 rounded-2xl p-3 text-center border border-white/5 animate-pulse">
-          <div class="h-4 bg-slate-700/50 rounded w-14 mx-auto mb-2"></div>
-          <div class="h-6 bg-slate-700/60 rounded w-20 mx-auto mb-1"></div>
-          <div class="h-4 bg-slate-700/40 rounded w-12 mx-auto"></div>
+          <div class="h-5 bg-slate-700/50 rounded-lg w-16 mx-auto mb-1.5"></div>
+          <div class="h-7 bg-slate-700/60 rounded-lg w-20 mx-auto mb-1"></div>
+          <div class="h-5 bg-slate-700/40 rounded-lg w-14 mx-auto"></div>
         </div>
         <div class="bg-ocean-950/60 rounded-2xl p-3 text-center border border-white/5 animate-pulse">
-          <div class="h-4 bg-slate-700/50 rounded w-14 mx-auto mb-2"></div>
-          <div class="h-6 bg-slate-700/60 rounded w-20 mx-auto mb-1"></div>
-          <div class="h-4 bg-slate-700/40 rounded w-12 mx-auto"></div>
+          <div class="h-5 bg-slate-700/50 rounded-lg w-16 mx-auto mb-1.5"></div>
+          <div class="h-7 bg-slate-700/60 rounded-lg w-20 mx-auto mb-1"></div>
+          <div class="h-5 bg-slate-700/40 rounded-lg w-14 mx-auto"></div>
         </div>
       </div>
     </section>
 
-    <!-- 卡片 3：24 小時連續平滑潮位波形 (Canvas Wave) 與潮高極值整合 (移至底部) -->
-    <section class="glass-card glass-card-hover rounded-3xl p-4 shadow-xl border border-ocean-800">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-1.5">
-          <span class="text-base">📈</span>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">24 小時潮位變化與趨勢</h3>
+    <!-- 卡片 3：24 小時連續平滑潮位波形 (Canvas Wave) 與潮高極值整合 -->
+    <section class="glass-card glass-card-hover rounded-3xl p-4 sm:p-5 shadow-xl border border-ocean-800">
+      <div class="flex items-center justify-between mb-2.5 flex-nowrap">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="text-lg">📈</span>
+          <h3 class="text-base sm:text-lg font-black uppercase tracking-wider text-white whitespace-nowrap">24 小時潮位變化與趨勢</h3>
         </div>
-        <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+        <span class="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block shadow-sm shadow-cyan-400"></span> 現在時間
         </span>
       </div>
@@ -326,7 +322,7 @@
       <div class="relative w-full h-36 bg-ocean-950/70 rounded-2xl overflow-hidden border border-slate-800/80 shadow-inner">
         <canvas id="tideCanvas" class="w-full h-full block"></canvas>
       </div>
-      <div class="flex justify-between items-center text-[10px] font-mono text-slate-400 px-1 pt-1.5">
+      <div class="flex justify-between items-center text-xs font-mono font-bold text-slate-300 px-1 pt-2">
         <span>00:00</span>
         <span>06:00</span>
         <span>12:00</span>
@@ -334,33 +330,33 @@
         <span>24:00</span>
       </div>
 
-      <!-- 整合：當前推估潮位 & 今日潮位極值 (與波形曲線完美對照) -->
-      <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t border-slate-700/50">
-        <div class="bg-ocean-950/60 rounded-2xl p-3 border border-white/5">
-          <span class="text-xs text-slate-400 block mb-1">當前推估潮位</span>
+      <!-- 整合：當前推估潮位 & 今日潮位極值 (水平 2 欄並列) -->
+      <div class="grid grid-cols-2 gap-3 pt-3 mt-3 border-t border-slate-700/60">
+        <div class="bg-ocean-950/70 rounded-2xl p-3 border border-white/10 shadow-inner">
+          <span class="text-xs sm:text-sm font-bold text-slate-300 block mb-1 whitespace-nowrap">當前推估潮位</span>
           <div class="flex items-baseline gap-1.5">
-            <span id="currentTideHeight" class="text-2xl font-black text-cyan-300 font-mono">--</span>
-            <span class="text-xs text-slate-400 font-medium">cm (基準)</span>
+            <span id="currentTideHeight" class="text-2xl sm:text-3xl font-black text-cyan-300 font-mono">--</span>
+            <span class="text-xs font-bold text-slate-300">cm (基準)</span>
           </div>
         </div>
-        <div class="bg-ocean-950/60 rounded-2xl p-3 border border-white/5">
-          <span class="text-xs text-slate-400 block mb-1">今日潮位極值</span>
-          <div class="flex items-center justify-between text-sm font-mono mt-0.5">
-            <span class="text-rose-300 font-semibold">滿 <strong id="todayMaxHeight" class="text-base font-black">--</strong></span>
-            <span class="text-cyan-300 font-semibold">乾 <strong id="todayMinHeight" class="text-base font-black">--</strong></span>
+        <div class="bg-ocean-950/70 rounded-2xl p-3 border border-white/10 shadow-inner">
+          <span class="text-xs sm:text-sm font-bold text-slate-300 block mb-1 whitespace-nowrap">今日潮位極值</span>
+          <div class="flex items-center justify-between text-xs sm:text-sm font-mono mt-1">
+            <span class="text-rose-300 font-bold whitespace-nowrap">滿 <strong id="todayMaxHeight" class="text-base sm:text-lg font-black">--</strong></span>
+            <span class="text-cyan-300 font-bold whitespace-nowrap">乾 <strong id="todayMinHeight" class="text-base sm:text-lg font-black">--</strong></span>
           </div>
         </div>
       </div>
     </section>
 
     <!-- 頁尾資訊 -->
-    <footer class="mt-2 text-center text-[11px] text-slate-400 flex flex-col items-center gap-1">
-      <div class="flex items-center gap-2">
+    <footer class="mt-2 text-center text-xs text-slate-400 font-medium flex flex-col items-center gap-1.5">
+      <div class="flex items-center gap-2 flex-wrap justify-center">
         <span>資料來源：交通部中央氣象署 (CWA)</span>
         <span>•</span>
         <span id="lastUpdateTime">更新於 --:--:--</span>
       </div>
-      <div class="flex items-center gap-2 text-slate-400">
+      <div class="flex items-center gap-2 text-slate-400 flex-wrap justify-center">
         <span>極簡免伺服器 SPA</span>
         <span>•</span>
         <span>支援離線快取</span>
@@ -432,6 +428,6 @@
   </div>
 
   <!-- 引入主程式腳本 -->
-  <script type="module" src="app.js?v=20261024_ui_v4"></script>
+  <script type="module" src="app.js?v=20261024_ui_v8"></script>
 </body>
 </html>

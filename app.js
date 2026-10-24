@@ -276,24 +276,24 @@ function renderTideSchedule(timeline, todayMeta) {
     dom.tideRangeBadge.textContent = `${todayMeta.tideRange || '中潮'} • ${todayMeta.lunarDate || '農曆'}`;
   }
 
-  // 渲染時序方格 (純大字標籤，無 icon，字體加大)
+  // 渲染時序方格 (平衡協調大字版，適配 2x2 網格防破版)
   dom.tideScheduleGrid.innerHTML = displayEvents.map(item => {
     const isHigh = item.type === '滿潮';
     const timeStr = item.dateTime ? item.dateTime.slice(11, 16) : '--:--';
     const tagBg = isHigh 
-      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40 shadow-rose-950/20' 
-      : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-cyan-950/20';
+      ? 'bg-rose-500/25 text-rose-300 border-rose-500/50 shadow-rose-950/30' 
+      : 'bg-cyan-500/25 text-cyan-300 border-cyan-500/50 shadow-cyan-950/30';
     
     return `
-      <div class="bg-ocean-950/60 rounded-2xl p-3 text-center border border-white/5 flex flex-col items-center justify-between transition hover:border-ocean-700 shadow-md">
-        <div class="inline-block px-3 py-0.5 rounded-lg text-xs sm:text-sm font-black border ${tagBg} mb-1.5 tracking-wider shadow-sm">
+      <div class="bg-ocean-950/70 rounded-2xl p-3 text-center border border-white/10 flex flex-col items-center justify-between transition hover:border-ocean-600 shadow-md">
+        <div class="inline-block px-3 py-0.5 rounded-lg text-sm font-black border ${tagBg} mb-1.5 tracking-wider shadow-sm">
           ${item.type}
         </div>
-        <div class="text-xl sm:text-2xl font-black tracking-tight text-white font-mono my-0.5">
+        <div class="text-2xl sm:text-3xl font-black tracking-tight text-white font-mono my-0.5">
           ${timeStr}
         </div>
-        <div class="text-xs sm:text-sm font-mono text-slate-300">
-          <strong class="${isHigh ? 'text-rose-300' : 'text-cyan-300'} font-bold">${item.heightChartDatum}</strong> cm
+        <div class="text-xs sm:text-sm font-mono text-slate-200 mt-0.5">
+          <strong class="${isHigh ? 'text-rose-300' : 'text-cyan-300'} text-base font-black">${item.heightChartDatum}</strong> cm
         </div>
       </div>
     `;
