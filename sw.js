@@ -4,7 +4,7 @@
  * 實作離線 App Shell 快取與 Stale-While-Revalidate 策略
  */
 
-const CACHE_NAME = 'tamsui-tide-pwa-v8';
+const CACHE_NAME = 'tamsui-tide-pwa-v9';
 
 // 預先快取的 App Shell 核心靜態資源清單
 const PRECACHE_ASSETS = [

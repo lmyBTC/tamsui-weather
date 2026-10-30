@@ -17,7 +17,7 @@
   - 支援 iOS Safari「加入主畫面」全螢幕運行無網址列。
   - 支援 Android Chrome 一鍵安裝為獨立原生應用程式。
   - Service Worker 預先快取核心 App Shell 靜態資源。
-  - 智慧 6 小時 TTL 快取機制，海邊訊號微弱或無網路時自動降級顯示最新快取或內建模擬展示資料。
+  - 智慧 3 小時 TTL 快取機制 (配合氣象署預報頻率)，海邊訊號微弱或無網路時自動降級顯示最新快取或內建模擬展示資料。
 - 🔐 **隱私與安全防護**：氣象署 API 金鑰儲存於使用者瀏覽器本地 `LocalStorage`，絕不外流或硬編碼於代碼庫中。
 
 ---
@@ -207,7 +207,7 @@ jobs:
 - `scratch/tmp/verify_phase1.mjs`: API 模組欄位對齊與 Mock 數據結構驗證
 - `scratch/tmp/verify_phase2.mjs`: UI 骨架、DOM 節點 ID、淡水專屬排版驗證
 - `scratch/tmp/verify_phase3.mjs`: 潮汐正弦波數學演算法、極值判定、Canvas 繪圖渲染驗證
-- `scratch/tmp/verify_phase4.mjs`: 6 小時 TTL 快取機制、離線降級、PWA Manifest 與 Service Worker 驗證
+- `scratch/tmp/verify_phase4.mjs`: 3 小時 TTL 快取機制、離線降級、PWA Manifest 與 Service Worker 驗證
 - `scratch/tmp/verify_phase5.mjs`: HTTP 靜態伺服器連線、MIME-Type 支援、相對路徑與全系統整合驗收
 
 執行驗證指令：

@@ -160,11 +160,11 @@ async function handleClearKey() {
   await refreshData(true);
 }
 
-// 快取存活時間 (TTL): 6 小時
-export const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+// 快取存活時間 (TTL): 3 小時 (中央氣象署鄉鎮氣象逐 3 小時預報更新週期)
+export const CACHE_TTL_MS = 3 * 60 * 60 * 1000;
 
 /**
- * 讀取本機快取與狀態檢查 (支援 6 小時 TTL)
+ * 讀取本機快取與狀態檢查 (支援 3 小時 TTL)
  * @param {boolean} allowExpired 是否允許回傳過期快取 (用於離線備援降級)
  * @returns {{ data: any, isExpired: boolean, cacheTime: number, formattedTime: string } | null}
  */
@@ -368,6 +368,15 @@ export function startLiveTimer() {
   updateTideLiveStatus();
   state.timerInterval = setInterval(() => {
     updateTideLiveStatus();
+    // 定期檢查快取時間：若距上次更新已滿 3 小時，自動觸發背景更新
+    const cacheTimeStr = localStorage.getItem(STORAGE_KEYS.CACHE_TIME);
+    if (cacheTimeStr && !state.isRefreshing) {
+      const cacheTime = parseInt(cacheTimeStr, 10);
+      if (Date.now() - cacheTime >= CACHE_TTL_MS) {
+        console.log('[Auto Refresh] 快取已逾 3 小時，自動觸發背景更新...');
+        refreshData(false);
+      }
+    }
   }, 1000);
 }
 
@@ -385,7 +394,17 @@ export async function refreshData(force = false) {
   try {
     let payload = null;
 
-    if (state.apiKey) {
+    let fromCache = false;
+
+    // 檢查是否有未過期快取 (小於 3 小時)
+    const validCacheInfo = loadLocalCacheInfo(false);
+
+    if (!force && validCacheInfo) {
+      // 非強制刷新且快取在 3 小時有效期限內：直接使用本機快取，優化 API 呼叫頻率
+      payload = validCacheInfo.data;
+      fromCache = true;
+      setOfflineBanner(false);
+    } else if (state.apiKey) {
       try {
         payload = await fetchTamsuiAll(state.apiKey);
         saveLocalCache(payload);
@@ -400,7 +419,7 @@ export async function refreshData(force = false) {
         const cacheInfo = loadLocalCacheInfo(true);
         if (cacheInfo) {
           payload = cacheInfo.data;
-          const expireNote = cacheInfo.isExpired ? ' (已逾 6 小時)' : '';
+          const expireNote = cacheInfo.isExpired ? ' (已逾 3 小時)' : '';
           setOfflineBanner(true, `⚠️ 連線異常 (${errDetail})，已切換至本機快取資料（快取於 ${cacheInfo.formattedTime}${expireNote}）`);
           showToast('已切換為本地離線快取資料', 'warning');
         } else {
@@ -414,7 +433,7 @@ export async function refreshData(force = false) {
       const cacheInfo = loadLocalCacheInfo(true);
       if (cacheInfo && !force) {
         payload = cacheInfo.data;
-        const expireNote = cacheInfo.isExpired ? ' (已逾 6 小時)' : '';
+        const expireNote = cacheInfo.isExpired ? ' (已逾 3 小時)' : '';
         setOfflineBanner(true, `ℹ️ 未輸入金鑰，目前顯示本機快取資料（快取於 ${cacheInfo.formattedTime}${expireNote}）`);
       } else {
         payload = TAMSUI_MOCK_DATA;
@@ -437,11 +456,16 @@ export async function refreshData(force = false) {
 
     // 更新最後更新時間
     if (dom.lastUpdateTime) {
-      const now = new Date();
-      dom.lastUpdateTime.textContent = `更新於 ${now.toTimeString().slice(0, 8)}`;
+      if (fromCache && validCacheInfo?.cacheTime) {
+        const cacheDate = new Date(validCacheInfo.cacheTime);
+        dom.lastUpdateTime.textContent = `更新於 ${cacheDate.toTimeString().slice(0, 8)} (快取)`;
+      } else {
+        const now = new Date();
+        dom.lastUpdateTime.textContent = `更新於 ${now.toTimeString().slice(0, 8)}`;
+      }
     }
 
-    showToast(payload.isMock ? '已載入淡水展示資料' : '淡水即時數據已更新', 'success');
+    showToast(payload.isMock ? '已載入淡水展示資料' : (fromCache ? '已載入快取數據 (3小時內有效)' : '淡水即時數據已更新'), 'success');
 
   } catch (e) {
     console.error('全域刷新發生未預期異常:', e);
